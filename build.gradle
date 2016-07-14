@@ -1,0 +1,40 @@
+ext {
+    mainScalaVersion = '2.11'
+    scalaVersion = "$mainScalaVersion.8"
+    scalaTestVersion = '2.2.6'
+    junitVersion = '4.12'
+}
+
+subprojects {
+    apply plugin: 'scala'
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    group 'org.imdex'
+    version '0.0.1-SNAPSHOT'
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        compile group: 'org.scala-lang', name: 'scala-library', version: scalaVersion
+        testCompile group: 'org.scalatest', name: "scalatest_${mainScalaVersion}", version: scalaTestVersion
+        testCompile group: 'junit', name: 'junit', version: junitVersion
+    }
+
+    tasks.withType(ScalaCompile) {
+        configure(scalaCompileOptions.forkOptions) {
+            memoryMaximumSize = '1g'
+            jvmArgs = ['-server', '-Xss4m']
+        }
+
+        scalaCompileOptions.with {
+            force = true
+            additionalParameters = ["-Xlint", "-feature", "-unchecked", "-deprecation", "-Xfuture", "-Xfatal-warnings", "-explaintypes", "-Ywarn-unused-import", "-Ydead-code", "-Yconst-opt", "-Ywarn-dead-code", "-Ywarn-inaccessible", "-Ywarn-nullary-unit"]
+        }
+
+        options.compilerArgs << "-Xlint:unchecked"
+    }
+}

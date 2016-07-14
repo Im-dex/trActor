@@ -1,0 +1,2 @@
+rootProject.name = 'trActor'
+include 'tractor-core', 'tractor-macro', 'tractor-actor'
