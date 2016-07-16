@@ -1,7 +1,7 @@
 ext {
-    mainScalaVersion = '2.11'
-    scalaVersion = "$mainScalaVersion.8"
-    scalaTestVersion = '2.2.6'
+    mainScalaVersion = '2.12'
+    scalaVersion = "$mainScalaVersion.0-M5"
+    scalaTestVersion = '3.0.0-RC4'
     junitVersion = '4.12'
 }
 
@@ -20,7 +20,7 @@ subprojects {
 
     dependencies {
         compile group: 'org.scala-lang', name: 'scala-library', version: scalaVersion
-        testCompile group: 'org.scalatest', name: "scalatest_${mainScalaVersion}", version: scalaTestVersion
+        testCompile group: 'org.scalatest', name: "scalatest_$scalaVersion", version: scalaTestVersion
         testCompile group: 'junit', name: 'junit', version: junitVersion
     }
 
@@ -32,7 +32,7 @@ subprojects {
 
         scalaCompileOptions.with {
             force = true
-            additionalParameters = ["-Xlint", "-feature", "-unchecked", "-deprecation", "-Xfuture", "-Xfatal-warnings", "-explaintypes", "-Ywarn-unused-import", "-Ydead-code", "-Yconst-opt", "-Ywarn-dead-code", "-Ywarn-inaccessible", "-Ywarn-nullary-unit"]
+            additionalParameters = ["-Xlint", "-feature", "-unchecked", "-deprecation", "-Xfuture", "-Xfatal-warnings", "-explaintypes", "-Ywarn-unused-import", "-Ywarn-dead-code", "-Ywarn-inaccessible", "-Ywarn-nullary-unit"]
         }
 
         options.compilerArgs << "-Xlint:unchecked"
