@@ -12,6 +12,7 @@ object UnionSpec {
 /**
   * Created by a.tsukanov on 14.07.2016.
   */
+//noinspection ScalaUnusedSymbol
 @RunWith(classOf[JUnitRunner])
 class UnionSpec extends FlatSpec with Matchers {
     import UnionSpec._
