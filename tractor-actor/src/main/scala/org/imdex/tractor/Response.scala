@@ -1,4 +1,4 @@
-package org.imdex.tractor.actor
+package org.imdex.tractor
 
 import scala.concurrent.Future
 import scala.util.Try
