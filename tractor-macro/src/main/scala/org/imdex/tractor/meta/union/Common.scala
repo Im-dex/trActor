@@ -1,6 +1,6 @@
-package org.imdex.tractor.macros.union
+package org.imdex.tractor.meta.union
 
-import org.imdex.tractor.macros.Macros
+import org.imdex.tractor.meta.Macros
 import org.imdex.tractor.union.{Union, |, ∅}
 
 import scala.annotation.tailrec

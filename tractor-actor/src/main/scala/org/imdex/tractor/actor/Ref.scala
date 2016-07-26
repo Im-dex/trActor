@@ -1,7 +1,8 @@
 package org.imdex.tractor.actor
 
-import org.imdex.tractor.{Delay, Response, Sender, Timeout}
+import org.imdex.tractor.{Response, Sender}
 import org.imdex.tractor.union.{Union, weak_∈, |, ∅}
+import org.imdex.tractor.util.{Delay, Timeout}
 
 import scala.concurrent.Future
 

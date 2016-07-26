@@ -1,6 +1,6 @@
 package org.imdex.tractor.union
 
-import org.imdex.tractor.macros.union.Traits
+import org.imdex.tractor.meta.union.Traits
 
 import scala.annotation.implicitNotFound
 import scala.language.experimental.macros

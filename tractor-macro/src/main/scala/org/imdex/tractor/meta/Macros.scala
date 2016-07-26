@@ -1,4 +1,4 @@
-package org.imdex.tractor.macros
+package org.imdex.tractor.meta
 
 import java.util.Objects
 
@@ -10,7 +10,7 @@ import scala.collection.mutable
 /**
   * Created by a.tsukanov on 14.07.2016.
   */
-private[macros] class Macros[C <: whitebox.Context](val c: C) {
+private[meta] class Macros[C <: whitebox.Context](val c: C) {
     import c.universe._
 
     sealed case class TypeWrapper(tpe: Type) {

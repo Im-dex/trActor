@@ -1,4 +1,4 @@
-package org.imdex.tractor.macros.union
+package org.imdex.tractor.meta.union
 
 import org.imdex.tractor.union
 import org.imdex.tractor.union._
