@@ -1,9 +1,11 @@
 package org.imdex.tractor
 
+import java.util.concurrent.atomic.AtomicReference
+
 import scala.annotation.tailrec
 import scala.collection.{TraversableLike, mutable}
 import scala.collection.generic.CanBuildFrom
-import scala.language.higherKinds
+import scala.language.{higherKinds, implicitConversions}
 
 /**
   * Created by a.tsukanov on 29.07.2016.
@@ -28,4 +30,10 @@ package object util {
             split(lengths)
         }
     }
+
+    implicit class RichTractorAtomicReference[T](val reference: AtomicReference[T]) extends AnyVal {
+        def :=(value: T): Unit = reference.set(value)
+    }
+
+    implicit def AtomicReference2Value[T](reference: AtomicReference[T]): T = reference.get
 }
