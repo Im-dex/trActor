@@ -1,4 +1,4 @@
-package org.imdex
+package org.imdex.tractor
 
 import scala.annotation.tailrec
 import scala.collection.{TraversableLike, mutable}
@@ -6,9 +6,9 @@ import scala.collection.generic.CanBuildFrom
 import scala.language.higherKinds
 
 /**
-  * Created by a.tsukanov on 26.07.2016.
+  * Created by a.tsukanov on 29.07.2016.
   */
-package object tractor {
+package object util {
     implicit class RichTractorTraversableLike[T, Collection[X] <: TraversableLike[X, Collection[X]]](val collection: Collection[T]) extends AnyVal {
         def split(lengths: Int*)(implicit cbf: CanBuildFrom[Collection[T], Collection[T], Collection[Collection[T]]]): Collection[Collection[T]] = {
             @tailrec

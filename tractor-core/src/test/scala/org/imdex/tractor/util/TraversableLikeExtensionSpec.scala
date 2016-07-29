@@ -1,4 +1,4 @@
-package org.imdex.tractor
+package org.imdex.tractor.util
 
 import org.scalatest.{FlatSpec, Matchers}
 
