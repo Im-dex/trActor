@@ -4,9 +4,15 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FlatSpec, Matchers}
 
+import scala.language.implicitConversions
+
 object UnionSpec {
     private sealed trait Base
     private final class TestClass extends Base
+
+    private final class ImplicitTest
+    private final class ImplicitTest2
+    private implicit def ImplicitTest2String(value: ImplicitTest): String = ""
 }
 
 /**
@@ -52,6 +58,8 @@ class UnionSpec extends FlatSpec with Matchers {
 
         def weakCheck(implicit ev: TestClass weak_∈ WeakTestUnion): Unit = ()
         def weakCheck2(implicit ev: List[Float] weak_∈ WeakTestUnion): Unit = ()
+        def implicitWeakCheck(implicit ev: ImplicitTest weak_∈ WeakTestUnion): Unit = ()
+        def implicitWeakCheck2(implicit ev: ImplicitTest2 weak_∈ WeakTestUnion): Unit = ()
 
         "check" should compile
         "check2" should compile
@@ -59,6 +67,8 @@ class UnionSpec extends FlatSpec with Matchers {
 
         "weakCheck" should compile
         "weakCheck2" should compile
+        "implicitWeakCheck" should compile
+        "implicitWeakCheck2" shouldNot compile
     }
 
     it should "provide weak `is not a member` compile type check" in {
@@ -69,6 +79,8 @@ class UnionSpec extends FlatSpec with Matchers {
 
         def weakCheck(implicit ev: TestClass weak_∉ WeakTestUnion): Unit = ()
         def weakCheck2(implicit ev: List[Float] weak_∉ WeakTestUnion): Unit = ()
+        def implicitWeakCheck(implicit ev: ImplicitTest weak_∉ WeakTestUnion): Unit = ()
+        def implicitWeakCheck2(implicit ev: ImplicitTest2 weak_∉ WeakTestUnion): Unit = ()
 
         "check" should compile
         "check2" should compile
@@ -77,6 +89,8 @@ class UnionSpec extends FlatSpec with Matchers {
 
         "weakCheck" shouldNot compile
         "weakCheck2" shouldNot compile
+        "implicitWeakCheck" shouldNot compile
+        "implicitWeakCheck2" should compile
     }
 
     // TODO: rest of tests

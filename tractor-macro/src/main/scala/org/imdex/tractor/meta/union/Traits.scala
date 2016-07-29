@@ -13,6 +13,10 @@ class Traits(val traitsCtx: whitebox.Context) extends Common(traitsCtx) {
 
     private def stop(): Nothing = c.abort(c.enclosingPosition, "")
 
+    private def hasImplicitView(from: Type, to: Type): Boolean = c.inferImplicitView(q"null", from, to) ne EmptyTree
+
+    private def result[T]: Expr[T] = c.Expr[T](q"null")
+
     private def weakSubset[T <: Union : c.WeakTypeTag, U <: Union : c.WeakTypeTag]: Boolean = {
         val firstTypes = decay[T]
         val secondTypes = decay[U]
@@ -20,36 +24,37 @@ class Traits(val traitsCtx: whitebox.Context) extends Common(traitsCtx) {
         firstTypes.forall(tpe => secondTypes.exists(tpe <:< _))
     }
 
-    def isMember[T : c.WeakTypeTag, U <: Union : c.WeakTypeTag]: c.Expr[T ∈ U] = {
+    private def isMemberExists[T : c.WeakTypeTag, U <: Union : c.WeakTypeTag]: Boolean = {
+        val tpe = weakTypeOf[T]
+        val unionTypes = decay[U]
+        unionTypes.contains(tpe)
+    }
+
+    private def isWeakMemberExists[T : c.WeakTypeTag, U <: Union : c.WeakTypeTag]: Boolean = {
         val tpe = weakTypeOf[T]
         val unionTypes = decay[U]
 
-        if (unionTypes.contains(tpe)) c.Expr[T ∈ U](q"null")
-        else                          stop()
+        unionTypes.exists(tpe <:< _) || unionTypes.exists(hasImplicitView(tpe, _))
+    }
+
+    def isMember[T : c.WeakTypeTag, U <: Union : c.WeakTypeTag]: c.Expr[T ∈ U] = {
+        if (!isMemberExists[T, U]) stop()
+        result[T ∈ U]
     }
 
     def isWeakMember[T : c.WeakTypeTag, U <: Union : c.WeakTypeTag]: c.Expr[T weak_∈ U] = {
-        val tpe = weakTypeOf[T]
-        val unionTypes = decay[U]
-
-        if (unionTypes.exists(tpe <:< _)) c.Expr[T weak_∈ U](q"null")
-        else                              stop()
-    }
-
-    def isNotAWeakMember[T : c.WeakTypeTag, U <: Union : c.WeakTypeTag]: c.Expr[T weak_∉ U] = {
-        val tpe = weakTypeOf[T]
-        val unionTypes = decay[U]
-
-        if (unionTypes.exists(tpe <:< _)) stop()
-        else                              c.Expr[T weak_∉ U](q"null")
+        if (!isWeakMemberExists[T, U]) stop()
+        result[T weak_∈ U]
     }
 
     def isNotAMember[T : c.WeakTypeTag, U <: Union : c.WeakTypeTag]: c.Expr[T ∉ U] = {
-        val tpe = weakTypeOf[T]
-        val unionTypes = decay[U]
+        if (isMemberExists[T, U]) stop()
+        result[T ∉ U]
+    }
 
-        if (unionTypes.contains(tpe)) stop()
-        c.Expr[T ∉ U](q"null")
+    def isNotAWeakMember[T : c.WeakTypeTag, U <: Union : c.WeakTypeTag]: c.Expr[T weak_∉ U] = {
+        if (isWeakMemberExists[T, U]) stop()
+        result[T weak_∉ U]
     }
 
     def equals[T <: Union : c.WeakTypeTag, U <: Union : c.WeakTypeTag]: c.Expr[union.=:=[T, U]] = {
@@ -57,14 +62,14 @@ class Traits(val traitsCtx: whitebox.Context) extends Common(traitsCtx) {
         val secondTypes = decay[U]
 
         if (firstTypes != secondTypes) stop()
-        c.Expr[union.=:=[T, U]](q"null")
+        result[union.=:=[T, U]]
     }
 
     def notEquals[T <: Union : c.WeakTypeTag, U <: Union : c.WeakTypeTag]: c.Expr[union.=!=[T, U]] = {
         val firstTypes = decay[T]
         val secondTypes = decay[U]
 
-        if (firstTypes != secondTypes) c.Expr[union.=!=[T, U]](q"null")
+        if (firstTypes != secondTypes) result[union.=!=[T, U]]
         else                           stop()
     }
 
@@ -72,12 +77,12 @@ class Traits(val traitsCtx: whitebox.Context) extends Common(traitsCtx) {
         val firstTypes = decay[T]
         val secondTypes = decay[U]
 
-        if (firstTypes.subsetOf(secondTypes)) c.Expr[T ⊂ U](q"null")
+        if (firstTypes.subsetOf(secondTypes)) result[T ⊂ U]
         else                                  stop()
     }
 
     def isWeakSubset[T <: Union : c.WeakTypeTag, U <: Union : c.WeakTypeTag]: c.Expr[T weak_⊂ U] = {
-        if (weakSubset[T, U]) c.Expr[T weak_⊂ U](q"null")
+        if (weakSubset[T, U]) result[T weak_⊂ U]
         else                  stop()
     }
 
@@ -85,12 +90,12 @@ class Traits(val traitsCtx: whitebox.Context) extends Common(traitsCtx) {
         val firstTypes = decay[T]
         val secondTypes = decay[U]
 
-        if (secondTypes.subsetOf(firstTypes)) c.Expr[T ⊃ U](q"null")
+        if (secondTypes.subsetOf(firstTypes)) result[T ⊃ U]
         else                                  stop()
     }
 
     def isWeakSuperset[T <: Union : c.WeakTypeTag, U <: Union : c.WeakTypeTag]: c.Expr[T weak_⊃ U] = {
-        if (weakSubset[U, T]) c.Expr[T weak_⊃ U](q"null")
+        if (weakSubset[U, T]) result[T weak_⊃ U]
         else                  stop()
     }
 }
