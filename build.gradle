@@ -37,4 +37,7 @@ subprojects {
 
         options.compilerArgs << "-Xlint:unchecked"
     }
+
+    compileJava.options.encoding = 'UTF-8'
+    compileScala.options.encoding = 'UTF-8'
 }

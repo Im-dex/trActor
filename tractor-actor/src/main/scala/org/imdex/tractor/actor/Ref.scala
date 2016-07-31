@@ -1,26 +1,35 @@
 package org.imdex.tractor.actor
 
 import org.imdex.tractor.{Response, Sender}
-import org.imdex.tractor.union.{Union, weak_∈, |, ∅}
+import org.imdex.tractor.union._
 import org.imdex.tractor.util.{Delay, Timeout}
 
-import scala.concurrent.Future
+import scala.concurrent.{Future, TimeoutException}
+import scala.language.implicitConversions
+
+class AskTimeoutException(message: Any, sender: JustRef, timeout: Timeout) extends TimeoutException {
+    override def getMessage: String = s"Ask timed out after '${timeout.duration}'. Message of type '${message.getClass.getTypeName}' from sender '$sender'" // TODO: sender name
+}
 
 object Ref {
     type Of[T] = Ref[T | ∅]
 
-    val BlackHole: Ref.Of[Any] = null // TODO: replace null by black hole actor ref
+    val NoSender: Ref.Of[Any] = null
+
+    implicit def Ref2Ref[U <: Union, UU <: Union](ref: Ref[U])(implicit ev: UU weak_⊂ U): Ref[UU] = ref.copyAs[UU]
 }
 
 /**
   * Created by a.tsukanov on 21.07.2016.
   */
-sealed trait Ref[Messages <: Union] {
+trait Ref[Messages <: Union] {
+    private[tractor] def copyAs[U <: Union]: Ref[U]
+
     //
     // send
     //
 
-    def send[T](message: T, sender: Ref[_] = Ref.BlackHole)(implicit ev: T weak_∈ Messages): Unit
+    def send[T](message: T, sender: JustRef = Ref.NoSender)(implicit ev: T weak_∈ Messages): Unit
 
     final def send[T, R](message: T with Response[R], sender: Ref.Of[R])(implicit ev: T weak_∈ Messages,
                                                                          dummy: DummyImplicit): Unit = send[T](message, sender)
@@ -35,7 +44,7 @@ sealed trait Ref[Messages <: Union] {
                                                                                                      dummy3: DummyImplicit): Unit = send[T](message, sender)
 
     final def ![T](message: T)(implicit ev: T weak_∈ Messages,
-                               sender: Ref[_] = Ref.BlackHole): Unit = send[T](message, sender)
+                               sender: JustRef = Ref.NoSender): Unit = send[T](message, sender)
 
     final def ![T, R](message: T with Response[R])(implicit ev: T weak_∈ Messages,
                                                    sender: Ref.Of[R],
@@ -58,7 +67,7 @@ sealed trait Ref[Messages <: Union] {
     // delayedSend
     //
 
-    def delayedSend[T](message: T, delay: Delay, sender: Ref[_] = Ref.BlackHole)(implicit ev: T weak_∈ Messages): Unit
+    def delayedSend[T](message: T, delay: Delay, sender: JustRef = Ref.NoSender)(implicit ev: T weak_∈ Messages): Unit
 
     final def delayedSend[T, R](message: T with Response[R], delay: Delay, sender: Ref.Of[R])(implicit ev: T weak_∈ Messages,
                                                                                               dummy: DummyImplicit): Unit = {
@@ -80,7 +89,7 @@ sealed trait Ref[Messages <: Union] {
 
     final def ~![T](message: T)(implicit ev: T weak_∈ Messages,
                                 delay: Delay,
-                                sender: Ref[_] = Ref.BlackHole): Unit = delayedSend[T](message, delay, sender)
+                                sender: JustRef = Ref.NoSender): Unit = delayedSend[T](message, delay, sender)
 
     final def ~![T, R](message: T with Response[R])(implicit ev: T weak_∈ Messages,
                                                     delay: Delay,
@@ -91,7 +100,9 @@ sealed trait Ref[Messages <: Union] {
                                                            delay: Delay,
                                                            sender: Ref[S],
                                                            dummy: DummyImplicit,
-                                                           dummy2: DummyImplicit): Unit = delayedSend[T, S](message, delay, sender)(ev, dummy, dummy2)
+                                                           dummy2: DummyImplicit): Unit = {
+        delayedSend[T, S](message, delay, sender)(ev, dummy, dummy2)
+    }
 
     final def ~![T, R, S <: Union](message: T with Response[R] with Sender[S])(implicit ev: T weak_∈ Messages,
                                                                                delay: Delay,
@@ -108,15 +119,16 @@ sealed trait Ref[Messages <: Union] {
 
     def ask[T, R](message: T with Response[R],
                   timeout: Timeout,
-                  sender: Ref[_] = Ref.BlackHole)(implicit ev: T weak_∈ Messages): Future[R]
+                  sender: JustRef = Ref.NoSender)(implicit ev: T weak_∈ Messages): Future[R]
 
     final def ask[T, R, S <: Union](message: T with Response[R] with Sender[S],
                                     timeout: Timeout,
-                                    sender: Ref[S])(implicit ev: T weak_∈ Messages, dummy: DummyImplicit): Future[R] = ask[T, R](message, timeout, sender)
+                                    sender: Ref[S])(implicit ev: T weak_∈ Messages,
+                                                    dummy: DummyImplicit): Future[R] = ask[T, R](message, timeout, sender)
 
     final def ?[T, R](message: T with Response[R])(implicit ev: T weak_∈ Messages,
                                                    timeout: Timeout,
-                                                   sender: Ref[_] = Ref.BlackHole): Future[R] = ask[T, R](message, timeout, sender)
+                                                   sender: JustRef = Ref.NoSender): Future[R] = ask[T, R](message, timeout, sender)
 
     final def ?[T, R, S <: Union](message: T with Response[R] with Sender[S])(implicit ev: T weak_∈ Messages,
                                                                               timeout: Timeout,
@@ -130,12 +142,13 @@ sealed trait Ref[Messages <: Union] {
     def delayedAsk[T, R](message: T with Response[R],
                          timeout: Timeout,
                          delay: Delay,
-                         sender: Ref[_] = Ref.BlackHole)(implicit ev: T weak_∈ Messages): Future[R]
+                         sender: JustRef = Ref.NoSender)(implicit ev: T weak_∈ Messages): Future[R]
 
     final def delayedAsk[T, R, S <: Union](message: T with Response[R] with Sender[S],
                                            timeout: Timeout,
                                            delay: Delay,
-                                           sender: Ref[S])(implicit ev: T weak_∈ Messages, dummy: DummyImplicit): Future[R] = {
+                                           sender: Ref[S])(implicit ev: T weak_∈ Messages,
+                                                           dummy: DummyImplicit): Future[R] = {
         delayedAsk[T, R](message, timeout, delay, sender)
     }
 }

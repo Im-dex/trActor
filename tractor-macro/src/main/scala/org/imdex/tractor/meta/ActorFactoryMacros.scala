@@ -1,6 +1,7 @@
 package org.imdex.tractor.meta
 
-import org.imdex.tractor._
+import org.imdex.tractor
+import org.imdex.tractor.The
 
 import scala.annotation.tailrec
 import scala.reflect.macros.whitebox
@@ -37,6 +38,8 @@ private[tractor] class ActorFactoryMacros(val c: whitebox.Context) {
 
         val params = {
             val paramLists = constructor.paramLists
+
+            import tractor.util._
 
             if (paramLists.tail.isEmpty) args :: Nil
             else                         (args: Seq[Expr[Any]]).split(paramLists.map(_.length): _*)
