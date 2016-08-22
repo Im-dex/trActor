@@ -1,7 +1,7 @@
 package org.imdex.tractor.meta
 
 import org.imdex.tractor
-import org.imdex.tractor.The
+import org.imdex.tractor.ActorConf
 
 import scala.annotation.tailrec
 import scala.reflect.macros.whitebox
@@ -12,8 +12,8 @@ import scala.reflect.macros.whitebox
 private[tractor] class ActorFactoryMacros(val c: whitebox.Context) {
     import c.universe._
 
-    def spawn[Messages : WeakTypeTag](the: Expr[The[_]], args: Expr[Any]*): Tree = {
-        val actualType = the.actualType
+    def spawn[Messages : WeakTypeTag](conf: Expr[ActorConf[_]], args: Expr[Any]*): Tree = {
+        val actualType = conf.actualType
         if (actualType.typeArgs.isEmpty) c.abort(c.enclosingPosition, s"Invalid actor type ${actualType.typeSymbol.fullName}")
 
         val `type` = actualType.typeArgs.head
@@ -47,6 +47,7 @@ private[tractor] class ActorFactoryMacros(val c: whitebox.Context) {
 
         q"""val creator = new ActorInstanceCreator[${`type`}] {
             override def create: ${`type`} = new ${`type`}(...$params)
+            override def conf = $conf.asInstanceOf[Conf[${`type`}]]
         }
         spawn[${weakTypeOf[Messages]}, ${`type`}](creator)"""
     }

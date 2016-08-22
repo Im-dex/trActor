@@ -14,7 +14,7 @@ class AskTimeoutException(message: Any, sender: JustRef, timeout: Timeout) exten
 object Ref {
     type Of[T] = Ref[T | ∅]
 
-    val NoSender: Ref.Of[Any] = null
+    val NoSender: Ref.Of[Any] = null // TODO: find good null replacement
 
     implicit def Ref2Ref[U <: Union, UU <: Union](ref: Ref[U])(implicit ev: UU weak_⊂ U): Ref[UU] = ref.copyAs[UU]
 }

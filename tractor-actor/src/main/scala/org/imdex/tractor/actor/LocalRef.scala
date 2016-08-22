@@ -1,7 +1,6 @@
 package org.imdex.tractor.actor
 
 import org.imdex.tractor.Response
-import org.imdex.tractor.dispatch.ActorContext
 import org.imdex.tractor.mailbox.Envelope
 import org.imdex.tractor.union.{Union, weak_∈}
 import org.imdex.tractor.util.{Delay, Timeout}
@@ -23,7 +22,7 @@ private[tractor] final class LocalRef[Messages <: Union](context: ActorContext) 
         scheduler.schedule(command, timeout.length, timeout.unit)
     }
 
-    override protected def copyAs[U <: Union]: Ref[U] = this.asInstanceOf[Ref[U]]
+    override private[tractor] def copyAs[U <: Union]: Ref[U] = this.asInstanceOf[Ref[U]]
 
     override def send[T](message: T, sender: JustRef = Ref.NoSender)(implicit ev: T weak_∈ Messages): Unit = {
         context.enqueue(Envelope(message, sender))

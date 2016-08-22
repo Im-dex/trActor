@@ -2,8 +2,6 @@ package org.imdex.tractor.dispatch
 
 import java.util.concurrent._
 
-import org.imdex.tractor.actor.ActorIndex
-
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
@@ -53,10 +51,4 @@ object BalancingDispatcher {
   * Created by a.tsukanov on 26.07.2016.
   */
 class BalancingDispatcher private[BalancingDispatcher] (executorService: ExecutorService,
-                                                        throughput: Int = Dispatcher.DefaultThroughput) extends Dispatcher(executorService, throughput) {
-    private[this] val actors = new ConcurrentHashMap[ActorIndex, ActorData]()
-
-    override protected def register(index: ActorIndex, data: ActorData): Unit = {
-        actors.put(index, data)
-    }
-}
+                                                        throughput: Int = Dispatcher.DefaultThroughput) extends Dispatcher(executorService, throughput)
